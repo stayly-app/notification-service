@@ -19,7 +19,13 @@ public class BookingEventListener {
     @SqsListener("${booking.events.queue.url}")
     public void onBookingConfirmed(String message) {
         try {
-            JsonNode root = objectMapper.readTree(message);
+            // Extraer mensaje del envelope SNS
+            JsonNode envelope = objectMapper.readTree(message);
+            String actualMessage = envelope.has("Message")
+                    ? envelope.path("Message").asText()
+                    : message;
+
+            JsonNode root = objectMapper.readTree(actualMessage);
             JsonNode payload = root.path("payload");
 
             String userId = payload.path("userId").asText();
